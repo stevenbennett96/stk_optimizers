@@ -1,4 +1,4 @@
-from ..base_calculators import Calculator
+from ..base_calculator import Calculator
 
 
 class Optimizer(Calculator):
