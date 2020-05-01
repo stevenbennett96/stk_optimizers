@@ -181,7 +181,6 @@ class XTB(Optimizer):
         charge=0,
         num_unpaired_electrons=0,
         unlimited_memory=False,
-        use_cache=False
     ):
         """
         Initialize a :class:`XTB` instance.
@@ -238,9 +237,6 @@ class XTB(Optimizer):
             constraints on the stack size. If memory issues are
             encountered, this should be ``True``, however this may
             raise issues on clusters.
-        use_cache : :class:`bool`, optional
-            If ``True`` :meth:`optimize` will not run twice on the same
-            molecule.
         """
 
         if solvent is not None:
