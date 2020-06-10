@@ -1,20 +1,23 @@
-.. stko documentation master file, created by
-   sphinx-quickstart on Wed Jun 10 18:18:02 2020.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
 Welcome to stko's documentation!
 ================================
 
+Contains molecular optimizers and property calculators for use with stk.
+
 .. toctree::
+   :hidden:
+   :caption: Optimizers
    :maxdepth: 2
-   :caption: Contents:
+
+   XTB <stko.optimizers.xtb>
+   RDKit <stko.optimizers.rdkit>
+   Gulp <stko.optimizers.gulp>
+   Collapser <stko.optimizers.collapser>
 
 
+.. toctree::
+   :hidden:
+   :caption: Calculators
+   :maxdepth: 2
 
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+   RDKit <stko.calculators.rdkit>
+   XTB <stko.calculators.xtb>
