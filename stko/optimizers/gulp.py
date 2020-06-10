@@ -1,6 +1,6 @@
 """
 GULP Metal Optimizer
-==============
+====================
 
 #. :class:`.GulpMetalOptimizer`
 #. :class:`.GulpMDMetalOpimizer`

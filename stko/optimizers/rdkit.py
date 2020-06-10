@@ -396,28 +396,31 @@ class MetalOptimizer(Optimizer):
         -------
         constraints : :class:`dict`
             Dictionary of all constraints of the form:
+
+            .. code-block:: python
+
                 bonds: {stk.bond: {
-                    'idx1': :class:`int`,
-                    'idx2': :class:`int`,
-                    'type': 'bond',
-                    'fc': :class:`float`
+                    'idx1': int,
+                    'idx2': int,
+                    'type': stk.Bond,
+                    'fc': float
                 }}
-                angles: {(stk.bond2, stk.bond): {
-                    'idx1': :class:`int`,
-                    'idx2': :class:`int`,
-                    'idx3': :class:`int`,
+                angles: {(stk.Bond, stk.Bond): {
+                    'idx1': int,
+                    'idx2': int,
+                    'idx3': int,
                     'type': 'angle',
-                    'angle': :class:`float`,
-                    'fc': :class:`float`
+                    'angle': float,
+                    'fc': float
                 }}
-                torsions: {(stk.bond, stk.bond, stk.bond): {
-                    'idx1': :class:`int`,
-                    'idx2': :class:`int`,
-                    'idx3': :class:`int`,
-                    'idx4': :class:`int`,
+                torsions: {(stk.Bond, stk.Bond, stk.Bond): {
+                    'idx1': int,
+                    'idx2': int,
+                    'idx3': int,
+                    'idx4': int,
                     'type': 'torsion',
-                    'torsion': :class:`float`,
-                    'fc': :class:`float`
+                    'torsion': float,
+                    'fc': float
                 }}
 
         """
