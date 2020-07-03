@@ -7,6 +7,7 @@ part of ``stko``. They must be completely self-sufficient.
 """
 
 import rdkit.Chem.AllChem as rdkit
+from stk import Molecule
 from rdkit.Geometry import Point3D
 import numpy as np
 import time
@@ -20,6 +21,7 @@ import tarfile
 from glob import iglob
 from itertools import chain
 from scipy.spatial.distance import euclidean
+import itertools as it
 
 
 # Holds the elements Van der Waals radii in Angstroms.
@@ -304,7 +306,7 @@ class MAEExtractor:
         index = 1
         for block in content_split:
             if ("f_m_ct" in prev_block[0] and
-               "r_mmod_Potential_Energy" in block):
+                    "r_mmod_Potential_Energy" in block):
                 energy = self.extract_energy(block)
                 self.energies.append((energy, index))
                 index += 1
@@ -541,7 +543,7 @@ def kill_macromodel():
         pass
 
 
-def matrix_centroid(matrix):
+def get_matrix_centroid(matrix):
     """
     Returns the centroid of the coordinates held in `matrix`.
 
@@ -719,7 +721,7 @@ def mol_from_mol_file(mol_file):
 
             if take_bond:
                 *_, bond_id, bond_order, atom1, atom2 = line.split()
-                e_mol.AddBond(int(atom1)-1, int(atom2)-1,
+                e_mol.AddBond(int(atom1) - 1, int(atom2) - 1,
                               bond_dict[bond_order])
                 continue
     if not v3000:
@@ -800,7 +802,7 @@ def orthogonal_vector(vector):
     ortho = np.array([0., 0., 0.])
     for m, val in enumerate(vector):
         if not np.allclose(val, 0, atol=1e-8):
-            n = (m+1) % 3
+            n = (m + 1) % 3
             break
     ortho[n] = vector[m]
     ortho[m] = -vector[n]
@@ -858,7 +860,7 @@ def rotation_matrix(vector1, vector2):
     s = np.linalg.norm(v)
     c = np.dot(vector1, vector2)
     i = np.identity(3)
-    mult_factor = (1-c)/np.square(s)
+    mult_factor = (1 - c) / np.square(s)
     return i + vx + np.multiply(np.dot(vx, vx), mult_factor)
 
 
@@ -883,19 +885,19 @@ def rotation_matrix_arbitrary_axis(angle, axis):
 
     """
 
-    a = np.cos(angle/2)
-    b, c, d = axis * np.sin(angle/2)
+    a = np.cos(angle / 2)
+    b, c, d = axis * np.sin(angle / 2)
 
     e11 = np.square(a) + np.square(b) - np.square(c) - np.square(d)
-    e12 = 2*(b*c - a*d)
-    e13 = 2*(b*d + a*c)
+    e12 = 2 * (b * c - a * d)
+    e13 = 2 * (b * d + a * c)
 
-    e21 = 2*(b*c + a*d)
+    e21 = 2 * (b * c + a * d)
     e22 = np.square(a) + np.square(c) - np.square(b) - np.square(d)
-    e23 = 2*(c*d - a*b)
+    e23 = 2 * (c * d - a * b)
 
-    e31 = 2*(b*d - a*c)
-    e32 = 2*(c*d + a*b)
+    e31 = 2 * (b * d - a * c)
+    e32 = 2 * (c * d + a * b)
     e33 = np.square(a) + np.square(d) - np.square(b) - np.square(c)
 
     return np.array([[e11, e12, e13],
@@ -1069,7 +1071,7 @@ def vector_angle(vector1, vector2):
     denominator = np.linalg.norm(vector1) * np.linalg.norm(vector2)
     # This if statement prevents returns of NaN due to floating point
     # inaccuracy.
-    term = numerator/denominator
+    term = numerator / denominator
     if term >= 1.:
         return 0.0
     if term <= -1.:
@@ -1189,6 +1191,7 @@ class XTBExtractor:
         units of wavenumber and calculated at 298.15K.
 
     """
+
     def __init__(self, output_file):
         """
         Initializes :class:`XTBExtractor`
@@ -1357,7 +1360,7 @@ class XTBExtractor:
 
         """
 
-        sample_set = self.output_lines[index+2].rstrip()
+        sample_set = self.output_lines[index + 2].rstrip()
 
         if 'q only:' in sample_set:
             self.qonly_dipole_moment = [
@@ -1383,7 +1386,7 @@ class XTBExtractor:
 
         """
 
-        sample_set = self.output_lines[index+3].rstrip()
+        sample_set = self.output_lines[index + 3].rstrip()
 
         if 'full:' in sample_set:
             self.full_dipole_moment = [
@@ -1409,7 +1412,7 @@ class XTBExtractor:
 
         """
 
-        sample_set = self.output_lines[index+2].rstrip()
+        sample_set = self.output_lines[index + 2].rstrip()
 
         if 'q only:' in sample_set:
             self.qonly_quadrupole_moment = [
@@ -1435,7 +1438,7 @@ class XTBExtractor:
 
         """
 
-        sample_set = self.output_lines[index+3].rstrip()
+        sample_set = self.output_lines[index + 3].rstrip()
 
         if 'q+dip:' in sample_set:
             self.qdip_quadrupole_moment = [
@@ -1461,7 +1464,7 @@ class XTBExtractor:
 
         """
 
-        sample_set = self.output_lines[index+4].rstrip()
+        sample_set = self.output_lines[index + 4].rstrip()
 
         if 'full:' in sample_set:
             self.full_quadrupole_moment = [
@@ -1564,7 +1567,7 @@ def get_acute_vector(reference, vector):
     if (
         # vector_angle is NaN if reference is [0, 0, 0].
         not np.allclose(reference, [0, 0, 0], atol=1e-5)
-        and vector_angle(vector, reference) > np.pi/2
+        and vector_angle(vector, reference) > np.pi / 2
     ):
         return vector * -1
     return vector
@@ -1729,3 +1732,140 @@ def get_atom_distance(position_matrix, atom1_id, atom2_id):
     )
 
     return float(distance)
+
+
+def get_largest_distance_between_atoms(mol, conf_id=-1):
+    """
+    Returns the largest distance between atoms in a molecule.
+
+    The largest returned distance excludes hydrogen atoms in the
+    molecule.
+
+    Parameters
+    ----------
+    mol : :class:`stk.Molecule`, :class:`rdkit.Mol`
+        Molecule to get the largest distance for.
+
+    conf_id : :class:`int`, optional
+        The ID of the confomer to use to calculate the maximum
+        distances.
+        Only applicable if ``mol`` is from :mod:`RDKit`.
+
+    Returns
+    -------
+    :class:`float`
+        The largest distance between two atoms in the molecule.
+    """
+    # Ensure molecule is converted into :mod:`RDKit` format.
+    if isinstance(mol, Molecule):
+        rdkit_mol = mol.to_rdkit_mol()
+    else:
+        # This line is for consistent naming of the :mod:`RDKit` `mol`.
+        rdkit_mol = mol
+    # Remove hydrogens to ensure they are not included in the
+    # calculations.
+    rdkit_mol = rdkit.RemoveHs(rdkit_mol)
+    conf = rdkit_mol.GetConformer(conf_id)
+    position_matrix = conf.getPositions()
+    # Gets atom IDs of those with the maximum distance.
+    max_atom1id, max_atom2id = max(
+        it.combinations(
+            range(
+                len(position_matrix)), 2
+        ),
+        key=lambda atom1_id, atom2_id: get_atom_distance(
+            position_matrix, atom1_id, atom2_id),
+    )
+    max_dist = get_atom_distance(
+        position_matrix, max_atom1id, max_atom2id)
+    # Add the van der Waals radii to the distance calculation.
+    max_dist += (
+        atom_vdw_radii[mol.GetAtomWithIdx(max_atom1id).GetSymbol()]
+        + atom_vdw_radii[mol.GetAtomWithIdx(max_atom2id).GetSymbol()]
+    )
+    return max_dist
+
+
+def apply_transformation(mol, shift, conf_id=-1):
+    """
+    Shifts the coordinates of all atoms.
+
+    Parameters
+    ----------
+    mol : :class:`stk.Molecule or :class:`rdkit.Mol`
+        Molecule to shift coordinates of.
+
+    shift : :class:`numpy.array`
+        A numpy array holding the value of the shift along each
+        axis.
+    conf_id : :class:`int`, optional
+        The ID of the conformer to shift.
+
+    Returns
+    -------
+    mol : :class:`stk.Molecule` or :class:`rdkit.Mol`
+        The molecule with the coordinates shifted by `shift`.
+    """
+    if isinstance(mol, Molecule):
+        rdkit_mol = mol.to_rdkit_mol()
+    else:
+        # This line is for consistent naming of the :mod:`RDKit` `mol`.
+        rdkit_mol = mol
+    # Create new instance of conformer, so original remains
+    # unmodified.
+    new_conf = rdkit.Conformer(rdkit_mol.GetConformer(conf_id))
+    for atom in mol.GetAtoms():
+        atom_id = atom.GetIdx()
+        atom_position = np.array(new_conf.GetAtomPosition(atom_id))
+        new_position = atom_position + shift
+        new_coords = Point3D(*new_position)
+        new_conf.SetAtomPosition(atom_id, new_coords)
+    # If the input molecule is from stk,
+    # create a new stk molecule.
+    if isinstance(mol, Molecule):
+        return mol.with_position_matrix(new_conf.getPositions())
+    else:
+        # Create new RDKit molecule, if input was an RDKit molecule.
+        new_mol = rdkit.Mol(rdkit_mol)
+        # Remove conformers copied from existing molecule.
+        new_mol.RemoveAllConformers()
+        new_mol.AddConformer(new_conf)
+        return new_mol
+
+
+def shift_centroid(mol, position, conf_id=-1):
+    """
+    Shifts the centroid of the molecule to `position`/
+
+    Parameters
+    ----------
+    mol : :class:`stk.Molecule or :class:`rdkit.Mol`
+        Molecule to get the largest distance for.
+
+    position : :class:`np.ndarry`
+        The array holding the positions in which the centroid should be
+        placed.
+
+    conf_id : :class:`int`, optional
+        The ID of the conformer to use, by default uses -1.
+
+    Returns
+    -------
+    mol : :class:`stk.Molecule` or :class:`rdkit.Mol`
+        The molecule with the centroid placed at `position`. This will
+        be the same instance as that of :attr:`mol`.
+    """
+    # Ensure molecule is converted into :mod:`RDKit` format.
+    if isinstance(mol, Molecule):
+        rdkit_mol = mol.to_rdkit_mol()
+    else:
+        # This line is for consistent naming of the :mod:`RDKit` `mol`.
+        rdkit_mol = mol
+    conf = rdkit_mol.GetConformer(conf_id)
+    position_matrix = conf.getPositions()
+    centroid = get_matrix_centroid(position_matrix)
+    # Find how much coordinates need to shift.
+    shift = position - centroid
+    new_mol = apply_transformation(
+        mol=mol, shift=shift, conf_id=conf_id
+    )
